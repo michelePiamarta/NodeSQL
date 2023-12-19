@@ -13,3 +13,5 @@ dati generali dei vestiti:
 -numero telefono produttore
 
 tabella negozio 1 a molti di tabelle di felpa, pantaloncini e maglia
+
+quando mando ng serve da github, il sito viene caricato su un altra macchina e non su quella locale
