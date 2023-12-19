@@ -1,0 +1,15 @@
+felpa-pantaloncini-maglia
+
+dati generali dei vestiti:
+-immagini //non si può creare con mokcaroo
+-nome
+-descrizione lunga //non si può creare con mokcaroo
+-descizione breve //non si può creare con mokcaroo
+-prezzo
+-sconto
+-taglia
+-sesso
+-materiale //non si può creare con mokcaroo
+-numero telefono produttore
+
+tabella negozio 1 a molti di tabelle di felpa, pantaloncini e maglia
