@@ -15,3 +15,7 @@ dati generali dei vestiti:
 tabella negozio 1 a molti di tabelle di felpa, pantaloncini e maglia
 
 quando mando ng serve da github, il sito viene caricato su un altra macchina e non su quella locale
+
+pagine:principale, con i prodotti in vista
+       carrello, dove compri le cose e le rimuovi dal database
+       upload, dove aggiungi al database prodotti da comprare
