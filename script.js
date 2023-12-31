@@ -64,41 +64,249 @@
 const express = require("express") 
 const mysql = require('mysql2'); //serve per collegare fra loro il server node e il database mysql, scaricato con npm install mysql2
 const cors = require("cors")
+const bodyParser = require('body-parser');
+//////////////////////////// così non ha senso perchè dobbiamo fare due richieste al server, una per prendere i dati e una per prendere l'immagine
+//quindi optiamo per postare le foto su imgur e prendere il link da lì
+//const path = require('path');
+//const fs = require('fs');
+//const multer = require('multer');
+////////////////////////////
 const app = express()
 const port = 3000;
 
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "cisco"
+    password: "cisco",
+    database: "negozio"
 });
 //connects and creates a database correctly
-con.connect((err)=> { //connection to the database, takes a call back function as a parameter which is called when the connection is established
-    if (err) throw err;
-    console.log("Connected!");
-    con.query("CREATE DATABASE mydb",(err, result)=> { //executes a query on the database, takes a call back function as a parameter which is called when the query is executed
-      if (err) throw err;
-      console.log("Database created");
-    });
-});
+//con.connect((err)=> { //connection to the database, takes a call back function as a parameter which is called when the connection is established
+//    if (err) throw err;
+//    console.log("Connected!");
+//    con.query("CREATE DATABASE mydb",(err, result)=> { //executes a query on the database, takes a call back function as a parameter which is called when the query is executed
+//      if (err) throw err;
+//      console.log("Database created");
+//    });
+//});
 
 app.use(cors())
+app.use(bodyParser.json());
 
-app.get("/tshirt", (req, res) => {
+
+
+
+app.get("/tshirts", (req, res) => {
     console.log("Connected " + req.hostname)
-    res.json({ name: "tshirt", price: 9.99 });
+    //res.json({ name: "tshirt", price: 9.99 });
+
+    con.connect((err) =>{
+        if (err) throw err;
+        con.query("SELECT * FROM tshirts", (err, result, fields) => {
+          if (err) throw err;
+          console.log(result);
+          res.json(result);
+        });
+      });
 });
 
 app.get("/hoodies", (req, res) => {
     console.log("Connected " + req.hostname)
-    res.json({ name: "hoodie", price: 69.99 });
+    //res.json({ name: "hoodie", price: 69.99 });
+
+    con.connect((err) =>{
+        if (err) throw err;
+        con.query("SELECT * FROM hoodies", (err, result, fields) => {
+          if (err) throw err;
+          console.log(result);
+          res.json(result);
+        });
+      });
 });
 
 app.get("/trousers", (req, res) => {
     console.log("Connected " + req.hostname)
-    res.json({ name: "trousers", price: 99.99 });
+    //res.json({ name: "trousers", price: 99.99 });
+
+    con.connect((err) =>{
+        if (err) throw err;
+        con.query("SELECT * FROM trousers", (err, result, fields) => { 
+          if (err) throw err;
+          console.log(result);
+          res.json(result);
+        });
+      });
 });
 
+app.post('/addTshirt', (req, res) => {
+  const {
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  } = req.body;
+  //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati. 
+  const sql = `
+    INSERT INTO tshirts 
+    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+  `;//il ? è un placeholder per i valori che passiamo dopo come parametro
+
+  const values = [
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  ];
+  con.connect((err) =>{
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error adding tshirt to the database:', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+  });
+  
+
+    console.log('tshirt added to the database');
+    res.status(201).json({ message: 'tshirt added successfully' });//status 201 significa che è stato creato con successo qualcosa sul server
+  });
+});
+
+app.post('/addHoodies', (req, res) => {
+  const {
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  } = req.body;
+  //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
+  const sql = `
+    INSERT INTO hoodies 
+    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+  `;//il ? è un placeholder per i valori che passiamo dopo come parametro
+
+  const values = [
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  ];
+
+  con.connect((err) =>{
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error adding hoodie to the database:', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+  });
+
+    console.log('hoodie added to the database');
+    res.status(201).json({ message: 'hoodie added successfully' });
+  });
+});
+
+app.post('/addTrousers', (req, res) => {
+  const {
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  } = req.body;
+  //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
+  const sql = `
+    INSERT INTO trousers 
+    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+  `;//il ? è un placeholder per i valori che passiamo dopo come parametro
+
+  const values = [
+    name_info,
+    short_description,
+    long_description,
+    price,
+    discount,
+    size_info,
+    sex,
+    material,
+    producer_phone,
+  ];
+
+  con.connect((err) =>{
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error adding trousers to the database:', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+  });
+
+    console.log('Trousers added to the database');
+    res.status(201).json({ message: 'Trousers added successfully' });
+  });
+});
+//////////////////////////////
+//const storage = multer.diskStorage({
+//  destination: function (req, file, cb) {
+//    cb(null, 'Images/Hoodies'); // Specify the destination folder for uploaded files
+//  },
+//  filename: function (req, file, cb) {
+//    cb(null, file.originalname); // Keep the original filename
+//  }
+//});
+//
+//const upload = multer({ storage: storage });
+//
+//app.get('/downloadFile', (req, res) => {
+//  const fileName = 'mokarooSettings.png'; // Specify the filename
+//  const filePath = path.join(__dirname, 'uploads', fileName);
+//
+//  // Set the appropriate headers for the file download
+//  res.setHeader('Content-Type', 'image/png'); // Adjust the content type based on your file type
+//  res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+//
+//  // Create a readable stream from the file and pipe it to the response
+//  const fileStream = fs.createReadStream(filePath);
+//  fileStream.pipe(res);
+//
+//  // Handle errors, if any
+//  fileStream.on('error', (error) => {
+//    console.error('Error reading file:', error);
+//    res.status(500).send('Internal Server Error');
+//  });
+//});
+//
+//////////////////////////////
 app.listen(port, () => {
     console.log("Example app listening at http://localhost:3000");
 });
