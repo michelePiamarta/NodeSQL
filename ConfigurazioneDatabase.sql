@@ -67,6 +67,9 @@ VALUES
   ('Bold Striped Tee', 'Bold and dynamic stripes', 'A tee with bold and dynamic stripes for a striking and fashionable look.', 19.99, 6, 'Medium', 'Female', 'Polyester', '888-999-0000'),
   ('Pocket Detail Shirt', 'Stylish pocket detail', 'A shirt with a stylish pocket detail for added flair and fashion.', 23.99, 14, 'Large', 'Male', 'Cotton Blend', '222-333-4444');
 
+INSERT INTO tshirts (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+VALUES 
+('https://i.imgur.com/O3xFSrH.jpeg','Stylish Trousers prova', 'Short and trendy prova', 'This is a stylish pair of trousers with a short and trendy design.', 29.99, 10, 'Medium', 'Male', 'Cotton Blend', '123-456-7890');
 
 INSERT INTO trousers (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
 VALUES 
