@@ -61,7 +61,7 @@
 
 //connettersi a sql da terminale: sudo mysql -u root -p
 //password: cisco
-const express = require("express") 
+const express = require("express")
 const mysql = require('mysql2'); //serve per collegare fra loro il server node e il database mysql, scaricato con npm install mysql2
 const cors = require("cors")
 const bodyParser = require('body-parser');
@@ -75,10 +75,10 @@ const app = express()
 const port = 3000;
 
 var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "cisco",
-    database: "negozio"
+  host: "localhost",
+  user: "root",
+  password: "cisco",
+  database: "negozio"
 });
 //connects and creates a database correctly
 //con.connect((err)=> { //connection to the database, takes a call back function as a parameter which is called when the connection is established
@@ -97,45 +97,45 @@ app.use(bodyParser.json());
 
 
 app.get("/tshirts", (req, res) => {
-    console.log("Connected " + req.hostname)
-    //res.json({ name: "tshirt", price: 9.99 });
+  console.log("Connected " + req.hostname)
+  //res.json({ name: "tshirt", price: 9.99 });
 
-    con.connect((err) =>{
-        if (err) throw err;
-        con.query("SELECT * FROM tshirts", (err, result, fields) => {
-          if (err) throw err;
-          console.log(result);
-          res.json(result);
-        });
-      });
+  con.connect((err) => {
+    if (err) throw err;
+    con.query("SELECT * FROM tshirts", (err, result, fields) => {
+      if (err) throw err;
+      console.log(result);
+      res.json(result);
+    });
+  });
 });
 
 app.get("/hoodies", (req, res) => {
-    console.log("Connected " + req.hostname)
-    //res.json({ name: "hoodie", price: 69.99 });
+  console.log("Connected " + req.hostname)
+  //res.json({ name: "hoodie", price: 69.99 });
 
-    con.connect((err) =>{
-        if (err) throw err;
-        con.query("SELECT * FROM hoodies", (err, result, fields) => {
-          if (err) throw err;
-          console.log(result);
-          res.json(result);
-        });
-      });
+  con.connect((err) => {
+    if (err) throw err;
+    con.query("SELECT * FROM hoodies", (err, result, fields) => {
+      if (err) throw err;
+      console.log(result);
+      res.json(result);
+    });
+  });
 });
 
 app.get("/trousers", (req, res) => {
-    console.log("Connected " + req.hostname)
-    //res.json({ name: "trousers", price: 99.99 });
+  console.log("Connected " + req.hostname)
+  //res.json({ name: "trousers", price: 99.99 });
 
-    con.connect((err) =>{
-        if (err) throw err;
-        con.query("SELECT * FROM trousers", (err, result, fields) => { 
-          if (err) throw err;
-          console.log(result);
-          res.json(result);
-        });
-      });
+  con.connect((err) => {
+    if (err) throw err;
+    con.query("SELECT * FROM trousers", (err, result, fields) => {
+      if (err) throw err;
+      console.log(result);
+      res.json(result);
+    });
+  });
 });
 
 app.post('/addTshirt', (req, res) => {
@@ -168,7 +168,7 @@ app.post('/addTshirt', (req, res) => {
     material,
     producer_phone,
   ];
-  con.connect((err) =>{
+  con.connect((err) => {
     if (err) throw err;
     con.query(sql, values, (err, result) => {
       if (err) {
@@ -176,8 +176,8 @@ app.post('/addTshirt', (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
         return;
       }
-  });
-  
+    });
+
 
     console.log('tshirt added to the database');
     res.status(201).json({ message: 'tshirt added successfully' });//status 201 significa che è stato creato con successo qualcosa sul server
@@ -215,7 +215,7 @@ app.post('/addHoodies', (req, res) => {
     producer_phone,
   ];
 
-  con.connect((err) =>{
+  con.connect((err) => {
     if (err) throw err;
     con.query(sql, values, (err, result) => {
       if (err) {
@@ -223,7 +223,7 @@ app.post('/addHoodies', (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
         return;
       }
-  });
+    });
 
     console.log('hoodie added to the database');
     res.status(201).json({ message: 'hoodie added successfully' });
@@ -261,7 +261,7 @@ app.post('/addTrousers', (req, res) => {
     producer_phone,
   ];
 
-  con.connect((err) =>{
+  con.connect((err) => {
     if (err) throw err;
     con.query(sql, values, (err, result) => {
       if (err) {
@@ -269,10 +269,70 @@ app.post('/addTrousers', (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
         return;
       }
-  });
+    });
 
     console.log('Trousers added to the database');
     res.status(201).json({ message: 'Trousers added successfully' });
+  });
+});
+
+app.delete('/buyTshirt/:id', (req, res) => {
+  const itemId = parseInt(req.params.id);
+
+  // Find the index of the item in the array
+  // If the item exists, remove it from the mysql table
+  const sql = `DELETE FROM tshirts WHERE tshirt_id = ?`;
+  const values = [itemId];
+
+  con.connect((err) => {
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error buying tshirt', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+    });
+  });
+});
+
+app.delete('/buyHoodie/:id', (req, res) => {
+  const itemId = parseInt(req.params.id);
+
+  // Find the index of the item in the array
+  // If the item exists, remove it from the mysql table
+  const sql = `DELETE FROM hoodies WHERE hoodies_id = ?`;
+  const values = [itemId];
+
+  con.connect((err) => {
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error buying hoodie', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+    });
+  });
+});
+
+app.delete('/buyTrousers/:id', (req, res) => {
+  const itemId = parseInt(req.params.id);
+
+  // Find the index of the item in the array
+  // If the item exists, remove it from the mysql table
+  const sql = `DELETE FROM trousers WHERE trousers_id = ?`;
+  const values = [itemId];
+
+  con.connect((err) => {
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error buying trousers', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+    });
   });
 });
 //////////////////////////////
@@ -308,5 +368,5 @@ app.post('/addTrousers', (req, res) => {
 //
 //////////////////////////////
 app.listen(port, () => {
-    console.log("Example app listening at http://localhost:3000");
+  console.log("Example app listening at http://localhost:3000");
 });

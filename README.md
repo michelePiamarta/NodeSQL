@@ -36,6 +36,9 @@ sudo mysql -u root -p
     - post tshirt
     - post trouser
     - post hoodie
+    - delete tshirt
+    - delete trouser
+    - delete hoodie
 - creati metodi get
 - aggiunto ngrok per semplicità di funzionalità
 - creato database
@@ -43,3 +46,4 @@ sudo mysql -u root -p
 - pensato come aggiungere le immagini
 - postato le immagini su imgur e rispondere alla richiesta con il link
 - creati metodi post
+- creati metodi delete
