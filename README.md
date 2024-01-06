@@ -1,13 +1,20 @@
+# Funzionalità
+Questa applicazione express permete di connettersi ad un database di un negozio, dove si possono fare 3 operazioni per 3 diversi indumenti:
+### 1. Chiedere al server gli indumenti (Metodo HTTP get)
+### 2. Inviare al server un nuovo indumento (Metodo HTTP post)
+### 3. Rimuovere dal server un indumento (Metodo HTTP delete)
+
+
 # Avviamento
-1. ### Avviamo il database
+1. ### Avviare il database
 ```
 sudo service mysql start
 ```
-2. ### Avviamo il server node
+2. ### Avviare il server node
 ```
 node script.js
 ```
-3. ### Avviamo ngrok per connetterci da remoto
+3. ### Avviare ngrok per connetterci da remoto
 ```
 ngrok http 3000
 ```
@@ -16,7 +23,8 @@ ngrok http 3000
 ```
 sudo mysql -u root -p
 ```
-# Sviluppo
+
+# Timeline Sviluppo
 - pensato quali parametri per gestire i dati
     - trousers_id INT AUTO_INCREMENT PRIMARY KEY,
     - image_path VARCHAR(255),
@@ -34,10 +42,10 @@ sudo mysql -u root -p
     - get trousers
     - get hoodies
     - post tshirt
-    - post trouser
+    - post trousers
     - post hoodie
     - delete tshirt
-    - delete trouser
+    - delete trousers
     - delete hoodie
 - creati metodi get
 - aggiunto ngrok per semplicità di funzionalità
