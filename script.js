@@ -94,7 +94,18 @@ app.use(cors())
 app.use(bodyParser.json());
 
 
-
+app.get("/all", (req, res) => {
+  console.log("Connected " + req.hostname)
+  //res.json({ name: "tshirt", price: 9.99 });
+  con.connect((err) => {
+    if (err) throw err;
+    con.query("SELECT * FROM tshirts UNION ALL SELECT * FROM hoodies UNION ALL SELECT * FROM trousers;", (err, result, fields) => {
+      if (err) throw err;
+      //console.log(result);
+      res.json(result);
+    });
+  });
+});
 
 app.get("/tshirts", (req, res) => {
   console.log("Connected " + req.hostname)
@@ -140,6 +151,7 @@ app.get("/trousers", (req, res) => {
 
 app.post('/addTshirt', (req, res) => {
   const {
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -153,11 +165,12 @@ app.post('/addTshirt', (req, res) => {
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati. 
   const sql = `
     INSERT INTO tshirts 
-    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -184,8 +197,9 @@ app.post('/addTshirt', (req, res) => {
   });
 });
 
-app.post('/addHoodies', (req, res) => {
+app.post('/addHoodie', (req, res) => {
   const {
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -199,11 +213,12 @@ app.post('/addHoodies', (req, res) => {
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
   const sql = `
     INSERT INTO hoodies 
-    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -232,6 +247,7 @@ app.post('/addHoodies', (req, res) => {
 
 app.post('/addTrousers', (req, res) => {
   const {
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -245,11 +261,12 @@ app.post('/addTrousers', (req, res) => {
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
   const sql = `
     INSERT INTO trousers 
-    (name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    image_path,
     name_info,
     short_description,
     long_description,
@@ -276,12 +293,12 @@ app.post('/addTrousers', (req, res) => {
   });
 });
 
-app.delete('/buyTshirt/:id', (req, res) => {
+app.delete('/buyTshirt/:image_path', (req, res) => {
   const itemId = parseInt(req.params.id);
 
   // Find the index of the item in the array
   // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM tshirts WHERE tshirt_id = ?`;
+  const sql = `DELETE FROM tshirts WHERE image_path = ?`;
   const values = [itemId];
 
   con.connect((err) => {
@@ -296,12 +313,12 @@ app.delete('/buyTshirt/:id', (req, res) => {
   });
 });
 
-app.delete('/buyHoodie/:id', (req, res) => {
+app.delete('/buyHoodie/:image_path', (req, res) => {
   const itemId = parseInt(req.params.id);
 
   // Find the index of the item in the array
   // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM hoodies WHERE hoodies_id = ?`;
+  const sql = `DELETE FROM hoodies WHERE image_path = ?`;
   const values = [itemId];
 
   con.connect((err) => {
@@ -316,12 +333,12 @@ app.delete('/buyHoodie/:id', (req, res) => {
   });
 });
 
-app.delete('/buyTrousers/:id', (req, res) => {
+app.delete('/buyTrousers/:image_path', (req, res) => {
   const itemId = parseInt(req.params.id);
 
   // Find the index of the item in the array
   // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM trousers WHERE trousers_id = ?`;
+  const sql = `DELETE FROM trousers WHERE image_path = ?`;
   const values = [itemId];
 
   con.connect((err) => {
@@ -333,6 +350,81 @@ app.delete('/buyTrousers/:id', (req, res) => {
         return;
       }
     });
+  });
+});
+
+app.delete('/buy/:image_path', (req, res) => {
+  const image_path = req.params.image_path;
+  
+  // Find the index of the item in the array
+  // If the item exists, remove it from the mysql table
+  const sql = `
+  WITH rows_to_delete AS (
+    SELECT image_path FROM tshirts WHERE image_path = ?
+    UNION ALL
+    SELECT image_path FROM hoodies WHERE image_path = ?
+    UNION ALL
+    SELECT image_path FROM trousers WHERE image_path = ?
+  )
+  DELETE t, h, tr
+  FROM tshirts t
+  JOIN hoodies h ON t.image_path = h.image_path
+  JOIN trousers tr ON t.image_path = tr.image_path
+  JOIN rows_to_delete rd ON t.image_path = rd.image_path;`;
+  const values = [image_path,image_path,image_path];
+
+  con.connect((err) => {
+    if (err) throw err;
+    con.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error buying', err);
+        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
+        return;
+      }
+    });
+  });
+});
+
+app.delete('/delete/:image_path', (req, res) => {
+  const image_path_param = req.params.image_path;
+
+  // Use UNION ALL to combine image_paths from all tables
+  const sql = `
+    SELECT image_path FROM tshirts
+    UNION ALL
+    SELECT image_path FROM hoodies
+    UNION ALL
+    SELECT image_path FROM trousers;`;
+
+  con.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error selecting image_paths', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    // Loop through the result set
+    result.forEach((row) => {
+      // Split the image_path based on "/"
+      const parts = row.image_path.split('/');
+
+      // Check if the last part of the split path matches the parameter
+      if (parts === image_path_param) {
+        // Delete the corresponding row from the respective table
+        //const tableName = parts[0]; // Assuming the table name is the first part of the path
+        const deleteQuery = `DELETE FROM ${row.tableName} WHERE image_path = ?`;
+
+        con.query(deleteQuery, [row.image_path], (err, deleteResult) => {
+          if (err) {
+            console.error(`Error deleting row from ${row.tableName}`, err);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+          }
+        });
+      }
+    });
+
+    res.json({ success: true, message: 'Rows successfully deleted.' });
   });
 });
 //////////////////////////////
