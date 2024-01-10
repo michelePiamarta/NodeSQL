@@ -93,13 +93,12 @@ var con = mysql.createConnection({
 app.use(cors())
 app.use(bodyParser.json());
 
-
 app.get("/all", (req, res) => {
   console.log("Connected " + req.hostname)
   //res.json({ name: "tshirt", price: 9.99 });
   con.connect((err) => {
     if (err) throw err;
-    con.query("SELECT * FROM tshirts UNION ALL SELECT * FROM hoodies UNION ALL SELECT * FROM trousers;", (err, result, fields) => {
+    con.query("SELECT * FROM product;", (err, result, fields) => {
       if (err) throw err;
       //console.log(result);
       res.json(result);
@@ -113,7 +112,7 @@ app.get("/tshirts", (req, res) => {
 
   con.connect((err) => {
     if (err) throw err;
-    con.query("SELECT * FROM tshirts", (err, result, fields) => {
+    con.query("SELECT * FROM product WHERE product_type = 'Tshirt'", (err, result, fields) => {
       if (err) throw err;
       console.log(result);
       res.json(result);
@@ -127,7 +126,7 @@ app.get("/hoodies", (req, res) => {
 
   con.connect((err) => {
     if (err) throw err;
-    con.query("SELECT * FROM hoodies", (err, result, fields) => {
+    con.query("SELECT * FROM product WHERE product_type = 'Hoodie'", (err, result, fields) => {
       if (err) throw err;
       console.log(result);
       res.json(result);
@@ -141,7 +140,7 @@ app.get("/trousers", (req, res) => {
 
   con.connect((err) => {
     if (err) throw err;
-    con.query("SELECT * FROM trousers", (err, result, fields) => {
+    con.query("SELECT * FROM product WHERE product_type = 'Trousers'", (err, result, fields) => {
       if (err) throw err;
       console.log(result);
       res.json(result);
@@ -151,6 +150,7 @@ app.get("/trousers", (req, res) => {
 
 app.post('/addTshirt', (req, res) => {
   const {
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -164,12 +164,13 @@ app.post('/addTshirt', (req, res) => {
   } = req.body;
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati. 
   const sql = `
-    INSERT INTO tshirts 
-    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    INSERT INTO product 
+    (product_type, image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -199,6 +200,7 @@ app.post('/addTshirt', (req, res) => {
 
 app.post('/addHoodie', (req, res) => {
   const {
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -212,12 +214,13 @@ app.post('/addHoodie', (req, res) => {
   } = req.body;
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
   const sql = `
-    INSERT INTO hoodies 
-    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    INSERT INTO product 
+    (product_type,image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -247,6 +250,7 @@ app.post('/addHoodie', (req, res) => {
 
 app.post('/addTrousers', (req, res) => {
   const {
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -260,12 +264,13 @@ app.post('/addTrousers', (req, res) => {
   } = req.body;
   //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
   const sql = `
-    INSERT INTO trousers 
-    (image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    INSERT INTO product 
+    (product_type,image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
+    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
   `;//il ? è un placeholder per i valori che passiamo dopo come parametro
 
   const values = [
+    product_type,
     image_path,
     name_info,
     short_description,
@@ -353,25 +358,13 @@ app.delete('/buyTrousers/:image_path', (req, res) => {
   });
 });
 
-app.delete('/buy/:image_path', (req, res) => {
-  const image_path = req.params.image_path;
+app.delete('/buy/:id', (req, res) => {
+  const id = req.params.id;
   
   // Find the index of the item in the array
   // If the item exists, remove it from the mysql table
-  const sql = `
-  WITH rows_to_delete AS (
-    SELECT image_path FROM tshirts WHERE image_path = ?
-    UNION ALL
-    SELECT image_path FROM hoodies WHERE image_path = ?
-    UNION ALL
-    SELECT image_path FROM trousers WHERE image_path = ?
-  )
-  DELETE t, h, tr
-  FROM tshirts t
-  JOIN hoodies h ON t.image_path = h.image_path
-  JOIN trousers tr ON t.image_path = tr.image_path
-  JOIN rows_to_delete rd ON t.image_path = rd.image_path;`;
-  const values = [image_path,image_path,image_path];
+  const sql = `DELETE FROM product WHERE product_id = ?`;
+  const values = [id];
 
   con.connect((err) => {
     if (err) throw err;
