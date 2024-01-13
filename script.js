@@ -1,63 +1,3 @@
-//const express = require('express');
-////const cors = require('cors');
-//const app = express();
-//const port = 3000;
-///*
-//il server non andava perchè codespace probabilmente redirecta le richieste, sminchiando gli header. In queso modo, qualunque cosa provassi, l'header Access-Control-Allow-Origin era sempre vuoto.
-//per farlo funzionare ho usato un servizio esterno di nome ngrok per mettere online il server senza passare da codespace. poi possiamo comunque fare la richiesta da codespace, perchè ngrok ci fornisce un url che rimanda al nostro server.
-//usando ngrok quindi dobbiamo usare cors per permettere al nostro server di accettare richieste da un altro dominio (in questo caso ngrok.io)
-//*/
-//app.head("/tshirts",  (req, res) => {
-//    console.info("HEAD /simple-cors");
-//    res.sendStatus(204);
-//});
-//app.get("/tshirts", (req, res) => {
-//    console.info("GET /simple-cors");
-//    res.json({
-//        name: "tshirt", price: 9.99
-//    });
-//});
-//app.post("/tshirts", (req, res) => {
-//    console.info("POST /simple-cors");
-//    res.json({
-//        text: "Simple CORS requests are working. [POST]"
-//    });
-//});
-//
-////const bearerToken = require('express-bearer-token');
-////to use the bearer token middleware
-////app.use(bearerToken());
-////to listen to the specified port
-//// Enable CORS for all routes
-////app.use( cors({origin: 'https://zany-orbit-44j6xq5j7xjfjp79-5502.app.github.dev'}) );
-////
-//////app.options("*", cors());
-////
-////app.get("/tshirts", (req, res)=> {
-////    //if(req.token !== "1234567890") {
-////    //    res.status(401).send("You ar not authorized to view this page");
-////    //}
-////    res.json({name: "tshirt", price: 9.99});
-////});
-////
-////app.get("/hoodies", (req, res)=> {
-////    //if(req.token !== "1234567890") {
-////    //    res.status(401).send("You are not authorized to view this page");
-////    //}
-////    res.send("here are the hoodies");
-////});
-////
-////app.get("/trousers", (req, res)=> {
-////    //if(req.token !== "1234567890") {
-////    //    res.status(401).send("You are not authorized to view this page");
-////    //}
-////    res.send("here are the trousers");
-////});
-//
-//app.listen(port, () => {
-//    console.log(`Example app listening at https://reimagined-rotary-phone-g946gxj4qpjhjgq-3000.app.github.dev/:${port}`);
-//});
-//
 
 //connettersi a sql da terminale: sudo mysql -u root -p
 //password: cisco
@@ -65,14 +5,12 @@ const express = require("express")
 const mysql = require('mysql2'); //serve per collegare fra loro il server node e il database mysql, scaricato con npm install mysql2
 const cors = require("cors")
 const bodyParser = require('body-parser');
-//////////////////////////// così non ha senso perchè dobbiamo fare due richieste al server, una per prendere i dati e una per prendere l'immagine
-//quindi optiamo per postare le foto su imgur e prendere il link da lì
-//const path = require('path');
-//const fs = require('fs');
-//const multer = require('multer');
-////////////////////////////
+
 const app = express()
 const port = 3000;
+
+app.use(cors())
+app.use(bodyParser.json());
 
 var con = mysql.createConnection({
   host: "localhost",
@@ -80,18 +18,6 @@ var con = mysql.createConnection({
   password: "cisco",
   database: "negozio"
 });
-//connects and creates a database correctly
-//con.connect((err)=> { //connection to the database, takes a call back function as a parameter which is called when the connection is established
-//    if (err) throw err;
-//    console.log("Connected!");
-//    con.query("CREATE DATABASE mydb",(err, result)=> { //executes a query on the database, takes a call back function as a parameter which is called when the query is executed
-//      if (err) throw err;
-//      console.log("Database created");
-//    });
-//});
-
-app.use(cors())
-app.use(bodyParser.json());
 
 app.get("/all", (req, res) => {
   console.log("Connected " + req.hostname)
@@ -105,14 +31,14 @@ app.get("/all", (req, res) => {
     });
   });
 });
-
-app.get("/tshirts", (req, res) => {
+//prendo un parametro dalla url in modo da non dover creare tre metodi uguali per ogni tipo di prodotto
+app.get("/:product_type", (req, res) => {
   console.log("Connected " + req.hostname)
-  //res.json({ name: "tshirt", price: 9.99 });
+  const product_type = req.params.product_type;
 
   con.connect((err) => {
     if (err) throw err;
-    con.query("SELECT * FROM product WHERE product_type = 'Tshirt'", (err, result, fields) => {
+    con.query(`SELECT * FROM product WHERE product_type = '${product_type}'`, (err, result, fields) => {
       if (err) throw err;
       console.log(result);
       res.json(result);
@@ -120,35 +46,7 @@ app.get("/tshirts", (req, res) => {
   });
 });
 
-app.get("/hoodies", (req, res) => {
-  console.log("Connected " + req.hostname)
-  //res.json({ name: "hoodie", price: 69.99 });
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query("SELECT * FROM product WHERE product_type = 'Hoodie'", (err, result, fields) => {
-      if (err) throw err;
-      console.log(result);
-      res.json(result);
-    });
-  });
-});
-
-app.get("/trousers", (req, res) => {
-  console.log("Connected " + req.hostname)
-  //res.json({ name: "trousers", price: 99.99 });
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query("SELECT * FROM product WHERE product_type = 'Trousers'", (err, result, fields) => {
-      if (err) throw err;
-      console.log(result);
-      res.json(result);
-    });
-  });
-});
-
-app.post('/addTshirt', (req, res) => {
+app.post('/add', (req, res) => {
   const {
     product_type,
     image_path,
@@ -186,175 +84,15 @@ app.post('/addTshirt', (req, res) => {
     if (err) throw err;
     con.query(sql, values, (err, result) => {
       if (err) {
-        console.error('Error adding tshirt to the database:', err);
+        console.error('Error adding product to the database:', err);
         res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
         return;
       }
     });
 
 
-    console.log('tshirt added to the database');
-    res.status(201).json({ message: 'tshirt added successfully' });//status 201 significa che è stato creato con successo qualcosa sul server
-  });
-});
-
-app.post('/addHoodie', (req, res) => {
-  const {
-    product_type,
-    image_path,
-    name_info,
-    short_description,
-    long_description,
-    price,
-    discount,
-    size_info,
-    sex,
-    material,
-    producer_phone,
-  } = req.body;
-  //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
-  const sql = `
-    INSERT INTO product 
-    (product_type,image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-  `;//il ? è un placeholder per i valori che passiamo dopo come parametro
-
-  const values = [
-    product_type,
-    image_path,
-    name_info,
-    short_description,
-    long_description,
-    price,
-    discount,
-    size_info,
-    sex,
-    material,
-    producer_phone,
-  ];
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Error adding hoodie to the database:', err);
-        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
-        return;
-      }
-    });
-
-    console.log('hoodie added to the database');
-    res.status(201).json({ message: 'hoodie added successfully' });
-  });
-});
-
-app.post('/addTrousers', (req, res) => {
-  const {
-    product_type,
-    image_path,
-    name_info,
-    short_description,
-    long_description,
-    price,
-    discount,
-    size_info,
-    sex,
-    material,
-    producer_phone,
-  } = req.body;
-  //per evitare sql injection, passiamo i valori come valori e non come codice sql perchè un hacker potrebbe cambiare i dati
-  const sql = `
-    INSERT INTO product 
-    (product_type,image_path, name_info, short_description, long_description, price, discount, size_info, sex, material, producer_phone)
-    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-  `;//il ? è un placeholder per i valori che passiamo dopo come parametro
-
-  const values = [
-    product_type,
-    image_path,
-    name_info,
-    short_description,
-    long_description,
-    price,
-    discount,
-    size_info,
-    sex,
-    material,
-    producer_phone,
-  ];
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Error adding trousers to the database:', err);
-        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
-        return;
-      }
-    });
-
-    console.log('Trousers added to the database');
-    res.status(201).json({ message: 'Trousers added successfully' });
-  });
-});
-
-app.delete('/buyTshirt/:image_path', (req, res) => {
-  const itemId = parseInt(req.params.id);
-
-  // Find the index of the item in the array
-  // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM tshirts WHERE image_path = ?`;
-  const values = [itemId];
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Error buying tshirt', err);
-        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
-        return;
-      }
-    });
-  });
-});
-
-app.delete('/buyHoodie/:image_path', (req, res) => {
-  const itemId = parseInt(req.params.id);
-
-  // Find the index of the item in the array
-  // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM hoodies WHERE image_path = ?`;
-  const values = [itemId];
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Error buying hoodie', err);
-        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
-        return;
-      }
-    });
-  });
-});
-
-app.delete('/buyTrousers/:image_path', (req, res) => {
-  const itemId = parseInt(req.params.id);
-
-  // Find the index of the item in the array
-  // If the item exists, remove it from the mysql table
-  const sql = `DELETE FROM trousers WHERE image_path = ?`;
-  const values = [itemId];
-
-  con.connect((err) => {
-    if (err) throw err;
-    con.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Error buying trousers', err);
-        res.status(500).json({ error: 'Internal Server Error' });//status 500 significa che c'è stato un errore sul server
-        return;
-      }
-    });
+    console.log('product added to the database');
+    res.status(201).json({ message: 'product added successfully' });//status 201 significa che è stato creato con successo qualcosa sul server
   });
 });
 
@@ -378,80 +116,6 @@ app.delete('/buy/:id', (req, res) => {
   });
 });
 
-app.delete('/delete/:image_path', (req, res) => {
-  const image_path_param = req.params.image_path;
-
-  // Use UNION ALL to combine image_paths from all tables
-  const sql = `
-    SELECT image_path FROM tshirts
-    UNION ALL
-    SELECT image_path FROM hoodies
-    UNION ALL
-    SELECT image_path FROM trousers;`;
-
-  con.query(sql, (err, result) => {
-    if (err) {
-      console.error('Error selecting image_paths', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-      return;
-    }
-
-    // Loop through the result set
-    result.forEach((row) => {
-      // Split the image_path based on "/"
-      const parts = row.image_path.split('/');
-
-      // Check if the last part of the split path matches the parameter
-      if (parts === image_path_param) {
-        // Delete the corresponding row from the respective table
-        //const tableName = parts[0]; // Assuming the table name is the first part of the path
-        const deleteQuery = `DELETE FROM ${row.tableName} WHERE image_path = ?`;
-
-        con.query(deleteQuery, [row.image_path], (err, deleteResult) => {
-          if (err) {
-            console.error(`Error deleting row from ${row.tableName}`, err);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
-          }
-        });
-      }
-    });
-
-    res.json({ success: true, message: 'Rows successfully deleted.' });
-  });
-});
-//////////////////////////////
-//const storage = multer.diskStorage({
-//  destination: function (req, file, cb) {
-//    cb(null, 'Images/Hoodies'); // Specify the destination folder for uploaded files
-//  },
-//  filename: function (req, file, cb) {
-//    cb(null, file.originalname); // Keep the original filename
-//  }
-//});
-//
-//const upload = multer({ storage: storage });
-//
-//app.get('/downloadFile', (req, res) => {
-//  const fileName = 'mokarooSettings.png'; // Specify the filename
-//  const filePath = path.join(__dirname, 'uploads', fileName);
-//
-//  // Set the appropriate headers for the file download
-//  res.setHeader('Content-Type', 'image/png'); // Adjust the content type based on your file type
-//  res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-//
-//  // Create a readable stream from the file and pipe it to the response
-//  const fileStream = fs.createReadStream(filePath);
-//  fileStream.pipe(res);
-//
-//  // Handle errors, if any
-//  fileStream.on('error', (error) => {
-//    console.error('Error reading file:', error);
-//    res.status(500).send('Internal Server Error');
-//  });
-//});
-//
-//////////////////////////////
 app.listen(port, () => {
-  console.log("Example app listening at http://localhost:3000");
+  console.log("app listening at http://localhost:3000");
 });
